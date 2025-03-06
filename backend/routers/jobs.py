@@ -3,8 +3,10 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 import asyncio
+import os
+import json
 
-from backend.models import (
+from models import (
     JobApplication,
     JobApplicationCreate,
     JobApplicationResponse,
@@ -13,21 +15,24 @@ from backend.models import (
     User,
     Resume,
 )
-from backend.routers.users import get_current_active_user
+from routers.users import get_current_active_user
+from routers.resumes import fake_resumes_db
+from services.puppeteer_service import PuppeteerService
 
 # Create router
 router = APIRouter()
 
 # Mock database (replace with actual database in production)
 fake_jobs_db = {}
-fake_resumes_db = {}  # This would be imported from the resumes module in a real app
 
+# Initialize Puppeteer service
+puppeteer_service = PuppeteerService()
 
 # Helper functions
 async def process_job_application(application_id: str):
     """
     Process a job application in the background.
-    This function would use browser automation to apply for the job.
+    This function uses Puppeteer for browser automation to apply for the job.
     """
     # Get the application from the database
     application = fake_jobs_db.get(application_id)
@@ -48,19 +53,67 @@ async def process_job_application(application_id: str):
     )
 
     try:
-        # In a real implementation, this would use Playwright/Selenium/Puppeteer
-        # to automate the job application process
-        await asyncio.sleep(5)  # Simulate processing time
-
-        # Simulate success (in a real app, this would depend on the automation result)
-        application["status"] = ApplicationStatus.SUCCEEDED
-        application["logs"].append(
-            {
-                "timestamp": datetime.now().isoformat(),
-                "message": "Successfully applied to job",
-                "level": "info",
-            }
-        )
+        # Get the resume information
+        resume_id = application["resume_id"]
+        resume = fake_resumes_db.get(resume_id)
+        if not resume:
+            raise Exception("Resume not found")
+        
+        resume_path = resume["path"]
+        
+        # Extract job URL from the application
+        job_url = application["job_url"]
+        
+        # Prepare resume data
+        resume_data = {
+            "name": "Nick Krzemienski",
+            "title": "Engineering Lead, Video Innovations @ fuboTV",
+            "summary": """Over 12 years of experience in software engineering management and technical leadership. 
+            Transitioned into the OTT video space in 2016, expanding expertise in mobile and web development.
+            Pioneered a shared Swift library for iOS/tvOS apps, separating the UI from the player for scalability.""",
+            "contact_info": {
+                "email": "krzemienski@gmail.com",
+                "phone": "",
+                "website": "awesome.video",
+                "github": "github.com/krzemienski",
+                "twitter": "twitter.com/nkrzemienski"
+            },
+            "experience": [
+                "Engineering Lead, Video Innovations, fuboTV Inc.",
+                "Engineering Lead, VOD Encoding & Operations, fuboTV Inc.",
+                "Engineering Manager, AppleTV & Roku, fuboTV Inc.",
+                "Software Engineer, iOS, fuboTV Inc.",
+                "Principal Developer & Founder, KODA LABS INC."
+            ],
+            "education": "Bachelor of Computer Science, Iona College"
+        }
+        
+        # Apply to the job using Puppeteer service
+        success, logs = await puppeteer_service.apply_to_job(job_url, resume_path, resume_data)
+        
+        # Add the logs from the puppeteer service
+        for log in logs:
+            application["logs"].append(log)
+        
+        if success:
+            application["status"] = ApplicationStatus.SUCCEEDED
+            application["logs"].append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "message": "Successfully applied to job",
+                    "level": "info",
+                }
+            )
+        else:
+            application["status"] = ApplicationStatus.FAILED
+            application["error_message"] = "Failed to apply to job"
+            application["logs"].append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "message": "Failed to apply to job",
+                    "level": "error",
+                }
+            )
     except Exception as e:
         # Handle errors
         application["status"] = ApplicationStatus.FAILED

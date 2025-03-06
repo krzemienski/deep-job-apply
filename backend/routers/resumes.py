@@ -6,8 +6,8 @@ from typing import List, Optional
 import shutil
 from datetime import datetime
 
-from backend.models import Resume, ResumeData, ResumeResponse, ResumeUpload, User
-from backend.routers.users import get_current_active_user
+from models import Resume, ResumeData, ResumeResponse, ResumeUpload, User
+from routers.users import get_current_active_user
 
 # Create router
 router = APIRouter()

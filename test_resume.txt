@@ -1,0 +1,19 @@
+JOHN DOE
+Software Engineer
+
+EXPERIENCE
+ABC Tech, Software Engineer
+- Developed scalable backend services using Python and FastAPI
+- Implemented frontend interfaces with React and Next.js
+- Utilized Docker for containerization and deployment
+
+XYZ Corp, Junior Developer
+- Built RESTful APIs with Django
+- Created automated testing frameworks
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of Technology, 2018-2022
+
+SKILLS
+Python, JavaScript, React, Docker, FastAPI, Next.js, AWS, Git

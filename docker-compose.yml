@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./backend:/app
       - ./uploads:/app/uploads
@@ -15,9 +15,12 @@ services:
       - ALGORITHM=${ALGORITHM:-HS256}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:3000}
+      - PUPPETEER_SERVICE_URL=http://automation-service:3001
     restart: unless-stopped
     networks:
       - deep-job-apply-network
+    depends_on:
+      - automation-service
 
   frontend:
     build:
@@ -38,6 +41,25 @@ services:
     command: npm run dev
     networks:
       - deep-job-apply-network
+
+  automation-service:
+    build:
+      context: ./automation-service
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./automation-service:/app
+      - ./uploads:/app/uploads
+      - /app/node_modules
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - deep-job-apply-network
+    cap_add:
+      - SYS_ADMIN  # Needed for Chrome/Puppeteer to run in a container
 
 networks:
   deep-job-apply-network:

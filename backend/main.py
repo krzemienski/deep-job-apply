@@ -7,7 +7,7 @@ import os
 from typing import List, Optional
 
 # Import routers
-from backend.routers import users, resumes, jobs
+from routers import users, resumes, jobs
 
 # Create FastAPI app
 app = FastAPI(

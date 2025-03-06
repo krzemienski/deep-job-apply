@@ -33,11 +33,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install Playwright browsers
 RUN playwright install chromium
 
-# Copy application code
-COPY . .
-
 # Create uploads directory
 RUN mkdir -p uploads
+
+# Copy application code
+COPY . /app/
+
+# Add current directory to Python path for imports
+ENV PYTHONPATH="${PYTHONPATH}:/app"
 
 # Expose port
 EXPOSE 8000

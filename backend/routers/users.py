@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 import os
 from pydantic import EmailStr
 
-from backend.models import User, UserCreate, UserResponse, Token, TokenData
+from models import User, UserCreate, UserResponse, Token, TokenData
 
 # Create router
 router = APIRouter()
